@@ -6,6 +6,8 @@ on:
 jobs:
   lock-gradle-dependencies:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,4 +28,3 @@ jobs:
         with:
           commit_message: 'Update gradle lockfiles [ci skip]'
           branch: ${{ github.head_ref }}
-
