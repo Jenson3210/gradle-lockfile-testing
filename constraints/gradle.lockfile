@@ -1,0 +1,12 @@
+# This is a Gradle generated file for dependency locking.
+# Manual edits can break the build and are not advised.
+# This file is expected to be part of source control.
+com.opencsv:opencsv:5.11=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+javax.activation:javax.activation-api:1.2.0=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+javax.xml.bind:jaxb-api:2.3.1=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.apache.commons:commons-collections4:4.4=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.apache.commons:commons-lang3:3.17.0=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.apache.commons:commons-text:1.13.0=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.liquibase:liquibase-core:4.20.0=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.yaml:snakeyaml:1.33=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+empty=annotationProcessor,testAnnotationProcessor

@@ -33,7 +33,7 @@ allprojects {
         }
     }
     dependencyLocking {
-        //lockMode = LockMode.STRICT // this cause the ./gradlew assemble -x bootJar command to fail on `unlocked` branch -> expected
+        lockMode = LockMode.STRICT // this cause the ./gradlew assemble -x bootJar command to fail on `unlocked` branch -> expected
         lockAllConfigurations()
     }
 
