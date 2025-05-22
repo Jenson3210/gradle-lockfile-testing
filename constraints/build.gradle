@@ -1,0 +1,8 @@
+dependencies {
+    constraints {
+        implementation('com.opencsv:opencsv:5.11') {
+            because 'CVE_TESTING'
+        }
+    }
+    implementation 'org.liquibase:liquibase-core:4.20.0'
+}

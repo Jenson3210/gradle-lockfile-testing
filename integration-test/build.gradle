@@ -1,0 +1,16 @@
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+dependencies {
+    testImplementation project(":core")
+
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+    testImplementation 'org.springframework.kafka:spring-kafka'
+
+    testImplementation 'org.apache.kafka:kafka_2.13'
+    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    testImplementation 'org.postgresql:postgresql'
+    testImplementation 'com.github.tomakehurst:wiremock:2.27.2'
+    testImplementation 'junit:junit:4.13.2'
+}

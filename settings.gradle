@@ -1,0 +1,14 @@
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'gradle-lockfiles-testing'
+
+include 'service'
+include 'core'
+include 'integration-test'
+include 'jackson'
+include 'transitive'
+include 'constraints'
