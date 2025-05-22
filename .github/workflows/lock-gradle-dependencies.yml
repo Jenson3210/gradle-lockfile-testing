@@ -1,0 +1,30 @@
+on:
+  push:
+    branches:
+      - 'moderne_*'
+
+jobs:
+  lock-gradle-dependencies:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Run Gradle resolveAndLockAll
+        run: ./gradlew resolveAndLockAll --write-locks
+
+      - name: Commit and push lockfile changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'Update gradle lockfiles [ci skip]'
+          branch: ${{ github.head_ref }}
