@@ -38,7 +38,9 @@ jobs:
         id: cache-moderne
         uses: actions/cache@v4
         with:
-          path: ~/moderne-cli
+          path: |
+            ~/moderne-cli
+            /usr/local/bin/mod
           key: ${{ runner.os }}-moderne-cli-jar-${{ steps.get-moderne-version.outputs.version }}
 
       - name: Install Moderne CLI
