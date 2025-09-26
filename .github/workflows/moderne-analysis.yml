@@ -70,7 +70,7 @@ jobs:
           mod build .
 
           # Run your Moderne commands here
-          mod run . --recipe=org.openrewrite.java.cleanup.CommonStaticAnalysis
+          mod run . --recipe=org.openrewrite.staticanalysis.CommonStaticAnalysis
 
           # Capture the patch/diff output
           if [ -f .moderne/patch.diff ]; then
