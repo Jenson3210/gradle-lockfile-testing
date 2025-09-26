@@ -169,7 +169,6 @@ jobs:
           level: warning
           filter_mode: diff_context
           reviewdog_flags: -f=diff
-          cleanup: 'false'
 
       # In a propeorly designed workflow we would run all different report-level recipes ran after each other and store the patch files so we could use them in reviewdog.
       # As this repo shows multiple different tools and their strengths/limitations, we need to rebuild lst here as otherwise the others tools would also error out.
