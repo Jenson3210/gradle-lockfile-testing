@@ -1,4 +1,0 @@
-dependencies {
-    implementation 'org.openrewrite:rewrite-java:7.0.0'
-}
-

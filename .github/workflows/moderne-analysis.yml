@@ -66,8 +66,8 @@ jobs:
           # Install the recipe jar
           mod config recipes jar install org.openrewrite.recipe:rewrite-static-analysis:2.18.0
           
-          # Build LST first
-          mod build .
+          # Build LST first (use no-download to not even bother trying to download an lst as this branch will not be there)
+          mod build . --no-download
 
           # Run your Moderne commands here
           mod run . --recipe=org.openrewrite.staticanalysis.CommonStaticAnalysis
