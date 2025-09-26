@@ -65,7 +65,7 @@ jobs:
         id: moderne-run
         run: |
           # Run your Moderne commands here
-          mod run --recipe=org.openrewrite.java.cleanup.CommonStaticAnalysis > moderne-output.txt 2>&1
+          mod run --recipe=org.openrewrite.java.cleanup.CommonStaticAnalysis
 
           # Capture the patch/diff output
           if [ -f .moderne/patch.diff ]; then
@@ -77,7 +77,7 @@ jobs:
           fi
 
       - name: Post patch as PR comment - Option 1 (GitHub Script)
-        if: steps.moderne-run.outputs.patch_found == 'true' || always()
+        if: steps.moderne-run.outputs.patch_found == 'true'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
