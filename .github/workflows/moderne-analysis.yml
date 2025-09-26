@@ -26,7 +26,11 @@ jobs:
       - name: Get Moderne CLI version
         id: get-moderne-version
         run: |
-          LATEST_VERSION=$(curl -s https://api.github.com/repos/moderneinc/moderne-cli/releases/latest | jq -r '.tag_name')
+          LATEST_VERSION=$(curl -s --request GET --url "https://api.github.com/repos/moderneinc/moderne-cli-releases/releases/latest" | jq '.tag_name' -r | sed "s/^v//")
+          if [ -z "${LATEST_VERSION}" ]; then
+            echo "Failed to get latest stable version"
+            exit 1
+          fi
           echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
           echo "Latest Moderne CLI version: $LATEST_VERSION"
 
@@ -34,18 +38,28 @@ jobs:
         id: cache-moderne
         uses: actions/cache@v4
         with:
-          path: /usr/local/bin/mod
-          key: ${{ runner.os }}-moderne-cli-${{ steps.get-moderne-version.outputs.version }}
+          path: ~/moderne-cli
+          key: ${{ runner.os }}-moderne-cli-jar-${{ steps.get-moderne-version.outputs.version }}
           restore-keys: |
-            ${{ runner.os }}-moderne-cli-${{ steps.get-moderne-version.outputs.version }}
+            ${{ runner.os }}-moderne-cli-jar-
 
       - name: Install Moderne CLI
         if: steps.cache-moderne.outputs.cache-hit != 'true'
         run: |
-          curl -L https://github.com/moderneinc/moderne-cli/releases/latest/download/mod -o mod
+          mkdir -p ~/moderne-cli
+          cd ~/moderne-cli
+          VERSION="${{ steps.get-moderne-version.outputs.version }}"
+          echo "Downloading Moderne CLI version: ${VERSION}"
+          curl -s --request GET --url "https://repo1.maven.org/maven2/io/moderne/moderne-cli/${VERSION}/moderne-cli-${VERSION}.jar" --output mod.jar
+
+          # Create wrapper script
+          cat > mod << 'EOF'
+          #!/bin/bash
+          java -jar ~/moderne-cli/mod.jar "$@"
+          EOF
           chmod +x mod
           sudo mv mod /usr/local/bin/
-          echo "Installed Moderne CLI version: $(/usr/local/bin/mod version)"
+          echo "Installed Moderne CLI version: ${VERSION}"
 
       - name: Run Moderne recipes
         id: moderne-run
