@@ -64,15 +64,11 @@ jobs:
       - name: Run Moderne recipes
         id: moderne-run
         run: |
-          # TODO can we not cache this output somehow to be only installing new ones once a day?  
-          # Install the recipe jar
+          # TODO can we not cache the installed jars output somehow to be only installing new ones once a day?  
           mod config recipes jar install org.openrewrite.recipe:rewrite-static-analysis:2.18.0
-          
-          # Build LST first (use no-download to not even bother trying to download an lst as this branch will not be there)
           mod build . --no-download
-
-          # Run your Moderne commands here
           mod run . --recipe=org.openrewrite.staticanalysis.CommonStaticAnalysis
+          mod git apply . --last-recipe-run
 
           # Capture the patch/diff output
           # The patch is located in .moderne/run/*/fix.patch
@@ -82,11 +78,16 @@ jobs:
             echo "patch_found=true" >> $GITHUB_OUTPUT
             cp "$PATCH_FILE" moderne-patch.diff
             echo "Found patch at: $PATCH_FILE"
-          else
-            echo "patch_found=false" >> $GITHUB_OUTPUT
-            # Fallback to git diff if no patch file found
-            git diff > moderne-patch.diff
           fi
+
+      - name: Post patch as PR review with reviewdog
+        if: steps.moderne-run.outputs.patch_found == 'true'
+        uses: reviewdog/action-suggester@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tool_name: Moderne
+          level: warning
+          reviewdog_flags: -f=diff
 
       - name: Post patch as PR comment - Option 1 (GitHub Script)
         if: steps.moderne-run.outputs.patch_found == 'true'
@@ -123,19 +124,3 @@ jobs:
               issue_number: context.issue.number,
               body: comment
             });
-
-      # Alternative Option 2: Using peter-evans/create-or-update-comment
-      # - name: Post patch as PR comment - Option 2
-      #   if: steps.moderne-run.outputs.patch_found == 'true' || always()
-      #   uses: peter-evans/create-or-update-comment@v4
-      #   with:
-      #     issue-number: ${{ github.event.pull_request.number }}
-      #     body-path: moderne-patch.diff
-
-      # Alternative Option 3: Using marocchino/sticky-pull-request-comment
-      # - name: Post patch as PR comment - Option 3
-      #   if: steps.moderne-run.outputs.patch_found == 'true' || always()
-      #   uses: marocchino/sticky-pull-request-comment@v2
-      #   with:
-      #     path: moderne-patch.diff
-      #     header: moderne-analysis
