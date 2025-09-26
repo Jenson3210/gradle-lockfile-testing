@@ -40,8 +40,6 @@ jobs:
         with:
           path: ~/moderne-cli
           key: ${{ runner.os }}-moderne-cli-jar-${{ steps.get-moderne-version.outputs.version }}
-          restore-keys: |
-            ${{ runner.os }}-moderne-cli-jar-
 
       - name: Install Moderne CLI
         if: steps.cache-moderne.outputs.cache-hit != 'true'
@@ -64,6 +62,10 @@ jobs:
       - name: Run Moderne recipes
         id: moderne-run
         run: |
+          # TODO can we not cache this output somehow to be only installing new ones once a day?  
+          # Install the recipe jar
+          mod config recipes jar install org.openrewrite.recipe:rewrite-static-analysis:2.18.0
+          
           # Build LST first
           mod build .
 
