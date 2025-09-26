@@ -140,6 +140,8 @@ jobs:
             }
 
       - name: Post patch as PR suggestions with google code-suggester
+        env:
+          ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         uses: googleapis/code-suggester@v5
         with:
           command: review
