@@ -157,3 +157,33 @@ jobs:
           tool_name: Moderne
           level: warning
           reviewdog_flags: -f=diff
+
+      - name: Run Moderne recipes
+        id: moderne-run
+        run: |
+          # TODO can we not cache the installed jars output somehow to be only installing new ones once a day?  
+          mod config recipes jar install org.openrewrite.recipe:rewrite-java-security
+          mod build . --no-download
+          mod run . --recipe org.openrewrite.java.dependencies.DependencyVulnerabilityCheck -P "scope=runtime" -P "overrideTransitive=true" -P "maximumUpgradeDelta=patch"
+          mod git apply . --last-recipe-run
+
+          # Capture the patch/diff output
+          # The patch is located in .moderne/run/*/fix.patch
+          PATCH_FILE=$(find .moderne/run -name "fix.patch" -type f 2>/dev/null | head -1)
+
+          if [ -n "$PATCH_FILE" ] && [ -f "$PATCH_FILE" ]; then
+            echo "patch_found=true" >> $GITHUB_OUTPUT
+            cp "$PATCH_FILE" moderne-patch.diff
+            echo "Found patch at: $PATCH_FILE"
+          fi
+
+      # This job cleans up the diff if no cleanup option is specified so running this one in the end
+      - name: Post patch as PR suggestions with reviewdog
+        if: steps.moderne-run.outputs.patch_found == 'true'
+        uses: reviewdog/action-suggester@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tool_name: Moderne
+          level: error
+          fail_level: error
+          reviewdog_flags: -f=diff
