@@ -6,6 +6,8 @@ on:
 jobs:
   moderne-analysis:
     runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.number }}
     permissions:
       contents: read
       pull-requests: write
@@ -80,16 +82,7 @@ jobs:
             echo "Found patch at: $PATCH_FILE"
           fi
 
-      - name: Post patch as PR review with reviewdog
-        if: steps.moderne-run.outputs.patch_found == 'true'
-        uses: reviewdog/action-suggester@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tool_name: Moderne
-          level: warning
-          reviewdog_flags: -f=diff
-
-      - name: Post patch as PR comment - Option 1 (GitHub Script)
+      - name: Post patch as PR comment with GitHub Script
         if: steps.moderne-run.outputs.patch_found == 'true'
         uses: actions/github-script@v7
         with:
@@ -101,7 +94,20 @@ jobs:
             try {
               patchContent = fs.readFileSync('moderne-patch.diff', 'utf8');
             } catch (error) {
-              patchContent = 'No changes detected or patch file not found.';
+              console.log('No patch file found. Skipping comment.');
+              return;
+            }
+
+            // Check if patch content is empty
+            if (!patchContent || patchContent.trim().length === 0) {
+              console.log('Patch file is empty. Skipping comment.');
+              // Clean up empty file
+              try {
+                fs.unlinkSync('moderne-patch.diff');
+              } catch (e) {
+                console.log('Could not remove empty patch file:', e.message);
+              }
+              return;
             }
 
             const comment = `## 🔧 Moderne Analysis Results
@@ -124,3 +130,28 @@ jobs:
               issue_number: context.issue.number,
               body: comment
             });
+
+            // Clean up the patch file after posting comment
+            try {
+              fs.unlinkSync('moderne-patch.diff');
+              console.log('Cleaned up patch file.');
+            } catch (error) {
+              console.log('Could not remove patch file:', error.message);
+            }
+
+      - name: Post patch as PR suggestions with google code-suggester
+        uses: googleapis/code-suggester@v5
+        with:
+          command: review
+          pull_number: ${{ env.PR_NUMBER }}
+          git_dir: "."
+
+      # This job cleans up the diff if no cleanup option is specified so running this one in the end
+      - name: Post patch as PR suggestions with reviewdog
+        if: steps.moderne-run.outputs.patch_found == 'true'
+        uses: reviewdog/action-suggester@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tool_name: Moderne
+          level: warning
+          reviewdog_flags: -f=diff
