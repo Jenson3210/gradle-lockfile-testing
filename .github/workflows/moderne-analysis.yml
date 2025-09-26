@@ -158,8 +158,10 @@ jobs:
           level: warning
           reviewdog_flags: -f=diff
 
+      # In a propeorly designed workflow we would run all different report-level recipes ran after each other and store the patch files so we could use them in reviewdog.
+      # As this repo shows multiple different tools and their strengths/limitations, we need to rebuild lst here as otherwise the others tools would also error out.
       - name: Run Moderne recipes
-        id: moderne-run
+        id: moderne-error-run
         run: |
           # TODO can we not cache the installed jars output somehow to be only installing new ones once a day?  
           mod config recipes jar install org.openrewrite.recipe:rewrite-java-security
@@ -178,8 +180,9 @@ jobs:
           fi
 
       # This job cleans up the diff if no cleanup option is specified so running this one in the end
-      - name: Post patch as PR suggestions with reviewdog
-        if: steps.moderne-run.outputs.patch_found == 'true'
+      - name: Post patch as PR errors with reviewdog
+        id: fail-pr
+        if: steps.moderne-error-run.outputs.patch_found == 'true'
         uses: reviewdog/action-suggester@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
