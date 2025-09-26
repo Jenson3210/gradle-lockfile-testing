@@ -157,6 +157,19 @@ jobs:
           tool_name: Moderne
           level: warning
           reviewdog_flags: -f=diff
+          cleanup: 'false'
+
+      # This job cleans up the diff if no cleanup option is specified so running this one in the end
+      - name: Post patch as PR suggestions with reviewdog
+        if: steps.moderne-run.outputs.patch_found == 'true'
+        uses: reviewdog/action-suggester@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tool_name: Moderne_diff_context
+          level: warning
+          filter_mode: diff_context
+          reviewdog_flags: -f=diff
+          cleanup: 'false'
 
       # In a propeorly designed workflow we would run all different report-level recipes ran after each other and store the patch files so we could use them in reviewdog.
       # As this repo shows multiple different tools and their strengths/limitations, we need to rebuild lst here as otherwise the others tools would also error out.
@@ -181,12 +194,12 @@ jobs:
 
       # This job cleans up the diff if no cleanup option is specified so running this one in the end
       - name: Post patch as PR errors with reviewdog
-        id: fail-pr
         if: steps.moderne-error-run.outputs.patch_found == 'true'
         uses: reviewdog/action-suggester@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          tool_name: Moderne
+          tool_name: Moderne_nofilter
           level: error
           fail_level: error
+          filter_mode: nofilter
           reviewdog_flags: -f=diff
