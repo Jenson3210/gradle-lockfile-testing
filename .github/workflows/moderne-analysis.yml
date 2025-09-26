@@ -64,8 +64,11 @@ jobs:
       - name: Run Moderne recipes
         id: moderne-run
         run: |
+          # Build LST first
+          mod build .
+
           # Run your Moderne commands here
-          mod run --recipe=org.openrewrite.java.cleanup.CommonStaticAnalysis
+          mod run . --recipe=org.openrewrite.java.cleanup.CommonStaticAnalysis
 
           # Capture the patch/diff output
           if [ -f .moderne/patch.diff ]; then
