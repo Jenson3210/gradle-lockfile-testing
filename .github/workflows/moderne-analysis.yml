@@ -166,7 +166,7 @@ jobs:
           # TODO can we not cache the installed jars output somehow to be only installing new ones once a day?  
           mod config recipes jar install org.openrewrite.recipe:rewrite-java-security
           mod build . --no-download
-          mod run . --recipe org.openrewrite.java.dependencies.DependencyVulnerabilityCheck -P "scope=runtime" -P "overrideTransitive=true" -P "maximumUpgradeDelta=patch"
+          mod run . --recipe org.openrewrite.java.dependencies.DependencyVulnerabilityCheck -P "scope=runtime" -P "overrideTransitive=true" -P "maximumUpgradeDelta=minor"
           mod git apply . --last-recipe-run
 
           # Capture the patch/diff output
