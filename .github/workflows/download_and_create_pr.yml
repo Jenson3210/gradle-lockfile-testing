@@ -24,7 +24,6 @@ jobs:
           BRANCH_NAME="update-repos-csv"
 
           # Check if branch exists and switch to it, or create new branch
-          echo "Fetching from origin..."
           git fetch origin --quiet
           if git rev-parse --verify origin/$BRANCH_NAME >/dev/null 2>&1; then
             echo "Branch $BRANCH_NAME exists, checking out..."
@@ -55,7 +54,6 @@ jobs:
       - name: Check for changes
         id: check_changes
         run: |
-          echo "Checking for changes in repos.csv..."
           git add sync/files/csv/repos.csv
           if git diff --staged --quiet; then
             echo "No changes detected"
@@ -68,10 +66,8 @@ jobs:
       - name: Commit changes
         if: steps.check_changes.outputs.changed == 'true'
         run: |
-          echo "Committing changes..."
-          git commit -m "Update repos.csv"
-          echo "Pushing to origin/update-repos-csv..."
-          git push origin update-repos-csv
+          git commit -q -m "Update repos.csv"
+          git push -q origin update-repos-csv
 
       - name: Create or update PR
         env:
