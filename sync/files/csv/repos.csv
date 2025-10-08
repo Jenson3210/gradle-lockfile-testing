@@ -12,8 +12,6 @@ https://github.com/openrewrite/rewrite-liberty,main,OpenRewrite,Open source,ALL
 https://github.com/openrewrite/rewrite-maven-plugin,main,OpenRewrite,Open source,ALL
 https://github.com/openrewrite/rewrite-micrometer,main,OpenRewrite,Open source,ALL
 https://github.com/openrewrite/rewrite-micronaut,main,OpenRewrite,Open source,ALL
-https://github.com/openrewrite/rewrite-okhttp,main,OpenRewrite,Open source,ALL
-https://github.com/openrewrite/rewrite-recipe-bom,main,OpenRewrite,Open source,ALL
 https://github.com/openrewrite/rewrite-recommendations,main,OpenRewrite,Open source,ALL
 https://github.com/WebGoat/WebGoat,main,WebGoat,Test,ALL
 https://github.com/WebGoat/WebGoat-Legacy,master,WebGoat,Test,ALL
@@ -51,4 +49,5 @@ https://github.com/Netflix/iep,main,Netflix,Open source,ALL
 https://github.com/Netflix/mantis-rxcontrol,master,Netflix,Open source,ALL
 https://github.com/Netflix/vmaf,master,Netflix,Open source,ALL
 https://github.com/Netflix/x-element,main,Netflix,Open source,ALL
+
 https://bitbucket.example.com/stash/scm/openrewrite/rewrite.git,main,Bitbucket,OpenRewrite,Open source,ALL
