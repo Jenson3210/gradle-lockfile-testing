@@ -77,7 +77,7 @@ jobs:
           echo "Committing changes..."
           git commit -m "Update repos.csv"
           echo "Pushing to origin/update-repos-csv..."
-          git push -f origin update-repos-csv
+          git push origin update-repos-csv
 
       - name: Create or update PR
         env:
