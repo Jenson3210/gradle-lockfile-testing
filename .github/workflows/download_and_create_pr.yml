@@ -18,23 +18,20 @@ jobs:
 
       - name: Setup git and switch to target branch
         run: |
-          echo "Setting up git configuration..."
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           BRANCH_NAME="update-repos-csv"
-          echo "Target branch: $BRANCH_NAME"
 
           # Check if branch exists and switch to it, or create new branch
           echo "Fetching from origin..."
-          git fetch origin
+          git fetch origin --quiet
           if git rev-parse --verify origin/$BRANCH_NAME >/dev/null 2>&1; then
-            echo "Branch $BRANCH_NAME exists, checking out and pulling..."
-            git checkout $BRANCH_NAME
-            git pull origin $BRANCH_NAME
+            echo "Branch $BRANCH_NAME exists, checking out..."
+            git checkout -q $BRANCH_NAME
           else
             echo "Creating new branch $BRANCH_NAME..."
-            git checkout -b $BRANCH_NAME
+            git checkout -q -b $BRANCH_NAME
           fi
 
       - name: Create directory structure
@@ -46,12 +43,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.REPOS_CSV_TOKEN }}
         run: |
-          echo "Downloading repos.csv..."
           if [ -n "$GITHUB_TOKEN" ]; then
-            echo "Using authenticated request"
+            echo "Downloading repos.csv with authentication"
             curl -sS -H "Authorization: token $GITHUB_TOKEN" -o sync/files/csv/repos.csv https://raw.githubusercontent.com/moderneinc/moderne-organizations/refs/heads/main/src/main/resources/repos.csv
           else
-            echo "Using unauthenticated request"
+            echo "Downloading repos.csv without authentication"
             curl -sS -o sync/files/csv/repos.csv https://raw.githubusercontent.com/moderneinc/moderne-organizations/refs/heads/main/src/main/resources/repos.csv
           fi
           echo "Download complete"
@@ -82,11 +78,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # Check if PR already exists
-          echo "Checking for existing PR..."
           PR_EXISTS=$(gh pr list --head update-repos-csv --state open --json number --jq '.[0].number')
 
           if [ -z "$PR_EXISTS" ]; then
-            echo "No existing PR found. Creating new PR..."
             gh pr create --title "Update repos.csv" --body "A change needs to be merged to update the organization structure" --base download-file-create-pr
             echo "PR created successfully"
           else
