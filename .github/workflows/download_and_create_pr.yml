@@ -1,3 +1,5 @@
+name: Update repos.csv
+
 on:
   schedule:
     - cron: '*/5 * * * *'
