@@ -16,6 +16,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup git and switch to target branch
+        run: |
+          echo "Setting up git configuration..."
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          BRANCH_NAME="update-repos-csv"
+          echo "Target branch: $BRANCH_NAME"
+
+          # Check if branch exists and switch to it, or create new branch
+          echo "Fetching from origin..."
+          git fetch origin
+          if git rev-parse --verify origin/$BRANCH_NAME >/dev/null 2>&1; then
+            echo "Branch $BRANCH_NAME exists, checking out and pulling..."
+            git checkout $BRANCH_NAME
+            git pull origin $BRANCH_NAME
+          else
+            echo "Creating new branch $BRANCH_NAME..."
+            git checkout -b $BRANCH_NAME
+          fi
+
       - name: Create directory structure
         run: |
           echo "Creating directory structure: sync/files/csv"
@@ -40,50 +61,29 @@ jobs:
         run: |
           echo "Checking for changes in repos.csv..."
           git add sync/files/csv/repos.csv
-          if git diff --staged --quiet sync/files/csv/repos.csv; then
+          if git diff --staged --quiet; then
             echo "No changes detected"
             echo "changed=false" >> $GITHUB_OUTPUT
           else
             echo "Changes detected!"
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "Diff:"
-            git diff --staged sync/files/csv/repos.csv
+            git diff --staged
           fi
 
-      - name: Create or update PR
+      - name: Commit and create/update PR
         if: steps.check_changes.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "Setting up git configuration..."
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          BRANCH_NAME="update-repos-csv"
-          echo "Target branch: $BRANCH_NAME"
-
-          # Check if branch exists and switch to it, or create new branch
-          echo "Fetching from origin..."
-          git fetch origin
-          if git rev-parse --verify origin/$BRANCH_NAME >/dev/null 2>&1; then
-            echo "Branch $BRANCH_NAME exists, checking out and pulling..."
-            git checkout $BRANCH_NAME
-            git pull origin $BRANCH_NAME
-          else
-            echo "Creating new branch $BRANCH_NAME..."
-            git checkout -b $BRANCH_NAME
-          fi
-
-          # Add and commit changes
-          echo "Adding and committing changes..."
-          git add sync/files/csv/repos.csv
+          echo "Committing changes..."
           git commit -m "Update repos.csv"
-          echo "Pushing to origin/$BRANCH_NAME..."
-          git push -f origin $BRANCH_NAME
+          echo "Pushing to origin/update-repos-csv..."
+          git push -f origin update-repos-csv
 
           # Check if PR already exists
           echo "Checking for existing PR..."
-          PR_EXISTS=$(gh pr list --head $BRANCH_NAME --state open --json number --jq '.[0].number')
+          PR_EXISTS=$(gh pr list --head update-repos-csv --state open --json number --jq '.[0].number')
 
           if [ -z "$PR_EXISTS" ]; then
             echo "No existing PR found. Creating new PR..."
