@@ -1,0 +1,71 @@
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  update-repos-csv:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create directory structure
+        run: mkdir -p sync/files/csv
+
+      - name: Download repos.csv
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPOS_CSV_TOKEN }}
+        run: |
+          if [ -n "$GITHUB_TOKEN" ]; then
+            curl -H "Authorization: token $GITHUB_TOKEN" -o sync/files/csv/repos.csv https://raw.githubusercontent.com/moderneinc/moderne-organizations/refs/heads/main/src/main/resources/repos.csv
+          else
+            curl -o sync/files/csv/repos.csv https://raw.githubusercontent.com/moderneinc/moderne-organizations/refs/heads/main/src/main/resources/repos.csv
+          fi
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet sync/files/csv/repos.csv; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create or update PR
+        if: steps.check_changes.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          BRANCH_NAME="update-repos-csv"
+
+          # Check if branch exists and switch to it, or create new branch
+          git fetch origin
+          if git rev-parse --verify origin/$BRANCH_NAME >/dev/null 2>&1; then
+            git checkout $BRANCH_NAME
+            git pull origin $BRANCH_NAME
+          else
+            git checkout -b $BRANCH_NAME
+          fi
+
+          # Add and commit changes
+          git add sync/files/csv/repos.csv
+          git commit -m "Update repos.csv"
+          git push -f origin $BRANCH_NAME
+
+          # Check if PR already exists
+          PR_EXISTS=$(gh pr list --head $BRANCH_NAME --state open --json number --jq '.[0].number')
+
+          if [ -z "$PR_EXISTS" ]; then
+            # Create new PR
+            gh pr create --title "Update repos.csv" --body "A change needs to be merged to update the organization structure" --base download-file-create-pr
+          else
+            # PR already exists, the force push updated it
+            echo "PR #$PR_EXISTS already exists and has been updated"
+          fi
