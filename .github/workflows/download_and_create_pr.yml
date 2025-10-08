@@ -17,25 +17,36 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create directory structure
-        run: mkdir -p sync/files/csv
+        run: |
+          echo "Creating directory structure: sync/files/csv"
+          mkdir -p sync/files/csv
 
       - name: Download repos.csv
         env:
           GITHUB_TOKEN: ${{ secrets.REPOS_CSV_TOKEN }}
         run: |
+          echo "Downloading repos.csv..."
           if [ -n "$GITHUB_TOKEN" ]; then
+            echo "Using authenticated request"
             curl -H "Authorization: token $GITHUB_TOKEN" -o sync/files/csv/repos.csv https://raw.githubusercontent.com/moderneinc/moderne-organizations/refs/heads/main/src/main/resources/repos.csv
           else
+            echo "Using unauthenticated request"
             curl -o sync/files/csv/repos.csv https://raw.githubusercontent.com/moderneinc/moderne-organizations/refs/heads/main/src/main/resources/repos.csv
           fi
+          echo "Download complete"
 
       - name: Check for changes
         id: check_changes
         run: |
+          echo "Checking for changes in repos.csv..."
           if git diff --quiet sync/files/csv/repos.csv; then
+            echo "No changes detected"
             echo "changed=false" >> $GITHUB_OUTPUT
           else
+            echo "Changes detected!"
             echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Diff:"
+            git diff sync/files/csv/repos.csv
           fi
 
       - name: Create or update PR
