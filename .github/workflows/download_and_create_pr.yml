@@ -49,10 +49,10 @@ jobs:
           echo "Downloading repos.csv..."
           if [ -n "$GITHUB_TOKEN" ]; then
             echo "Using authenticated request"
-            curl -H "Authorization: token $GITHUB_TOKEN" -o sync/files/csv/repos.csv https://raw.githubusercontent.com/moderneinc/moderne-organizations/refs/heads/main/src/main/resources/repos.csv
+            curl -sS -H "Authorization: token $GITHUB_TOKEN" -o sync/files/csv/repos.csv https://raw.githubusercontent.com/moderneinc/moderne-organizations/refs/heads/main/src/main/resources/repos.csv
           else
             echo "Using unauthenticated request"
-            curl -o sync/files/csv/repos.csv https://raw.githubusercontent.com/moderneinc/moderne-organizations/refs/heads/main/src/main/resources/repos.csv
+            curl -sS -o sync/files/csv/repos.csv https://raw.githubusercontent.com/moderneinc/moderne-organizations/refs/heads/main/src/main/resources/repos.csv
           fi
           echo "Download complete"
 
@@ -67,8 +67,6 @@ jobs:
           else
             echo "Changes detected!"
             echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Diff:"
-            git diff --staged
           fi
 
       - name: Commit changes
