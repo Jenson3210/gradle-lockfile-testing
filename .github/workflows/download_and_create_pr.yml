@@ -39,14 +39,15 @@ jobs:
         id: check_changes
         run: |
           echo "Checking for changes in repos.csv..."
-          if git diff --quiet sync/files/csv/repos.csv; then
+          git add sync/files/csv/repos.csv
+          if git diff --staged --quiet sync/files/csv/repos.csv; then
             echo "No changes detected"
             echo "changed=false" >> $GITHUB_OUTPUT
           else
             echo "Changes detected!"
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "Diff:"
-            git diff sync/files/csv/repos.csv
+            git diff --staged sync/files/csv/repos.csv
           fi
 
       - name: Create or update PR
