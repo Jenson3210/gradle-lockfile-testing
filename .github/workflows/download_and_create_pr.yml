@@ -71,16 +71,18 @@ jobs:
             git diff --staged
           fi
 
-      - name: Commit and create/update PR
+      - name: Commit changes
         if: steps.check_changes.outputs.changed == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           echo "Committing changes..."
           git commit -m "Update repos.csv"
           echo "Pushing to origin/update-repos-csv..."
           git push -f origin update-repos-csv
 
+      - name: Create or update PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
           # Check if PR already exists
           echo "Checking for existing PR..."
           PR_EXISTS=$(gh pr list --head update-repos-csv --state open --json number --jq '.[0].number')
@@ -90,5 +92,5 @@ jobs:
             gh pr create --title "Update repos.csv" --body "A change needs to be merged to update the organization structure" --base download-file-create-pr
             echo "PR created successfully"
           else
-            echo "PR #$PR_EXISTS already exists and has been updated"
+            echo "PR #$PR_EXISTS already exists"
           fi
