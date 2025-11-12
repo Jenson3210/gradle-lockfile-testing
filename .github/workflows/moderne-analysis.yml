@@ -63,10 +63,79 @@ jobs:
           sudo mv mod /usr/local/bin/
           echo "Installed Moderne CLI version: ${VERSION}"
 
+      - name: Get PR changed files
+        id: get-changed-files
+        run: |
+          # Get the base branch
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+
+          # Fetch the base branch
+          git fetch origin "$BASE_BRANCH"
+
+          # Get list of changed files in the PR
+          CHANGED_FILES=$(git diff --name-only "origin/$BASE_BRANCH"...HEAD)
+
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Save to output
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Generate moderne.yml for PR files
+        run: |
+          CHANGED_FILES="${{ steps.get-changed-files.outputs.files }}"
+
+          # Start building the inclusion pattern
+          INCLUSIONS=""
+          MODULES=""
+
+          # Process each changed file
+          while IFS= read -r file; do
+            if [ -n "$file" ]; then
+              # Add the file itself
+              INCLUSIONS="${INCLUSIONS}            ${file}\n"
+
+              # Extract module directory (e.g., "core" from "core/src/main/java/...")
+              MODULE=$(echo "$file" | cut -d'/' -f1)
+
+              # Track unique modules
+              if [[ ! " $MODULES " =~ " $MODULE " ]]; then
+                MODULES="$MODULES $MODULE"
+                # Add the module's build.gradle if it exists
+                if [ -f "$MODULE/build.gradle" ]; then
+                  INCLUSIONS="${INCLUSIONS}            ${MODULE}/build.gradle\n"
+                fi
+                if [ -f "$MODULE/build.gradle.kts" ]; then
+                  INCLUSIONS="${INCLUSIONS}            ${MODULE}/build.gradle.kts\n"
+                fi
+              fi
+            fi
+          done <<< "$CHANGED_FILES"
+
+          # Create moderne.yml with dynamic inclusions
+          mkdir -p .moderne
+          cat > .moderne/moderne.yml << EOF
+          build:
+            partitions:
+              - name: pr-files
+                steps:
+                  - type: gradle
+                    inclusion: |-
+          $(echo -e "$INCLUSIONS" | sed 's/^/          /')
+                  - type: resource
+                    inclusion: |-
+          $(echo -e "$INCLUSIONS" | sed 's/^/          /')
+          EOF
+
+          echo "Generated moderne.yml:"
+          cat .moderne/moderne.yml
+
       - name: Run Moderne recipes
         id: moderne-run
         run: |
-          # TODO can we not cache the installed jars output somehow to be only installing new ones once a day?  
+          # TODO can we not cache the installed jars output somehow to be only installing new ones once a day?
           mod config recipes jar install org.openrewrite.recipe:rewrite-static-analysis:2.18.0
           mod build . --no-download
           mod run . --recipe=org.openrewrite.staticanalysis.CommonStaticAnalysis

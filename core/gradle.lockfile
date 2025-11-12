@@ -19,6 +19,6 @@ org.liquibase:liquibase-core:4.20.0=compileClasspath,productionRuntimeClasspath,
 org.ow2.asm:asm-commons:9.7=jacocoAnt
 org.ow2.asm:asm-tree:9.7=jacocoAnt
 org.ow2.asm:asm:9.7=jacocoAnt
-org.projectlombok:lombok:1.18.16=annotationProcessor,compileClasspath,lombok,testAnnotationProcessor,testCompileClasspath
+org.projectlombok:lombok:1.18.42=annotationProcessor,compileClasspath,lombok,testAnnotationProcessor,testCompileClasspath
 org.yaml:snakeyaml:1.30=compileClasspath,productionRuntimeClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 empty=developmentOnly
