@@ -93,12 +93,14 @@ jobs:
           # Start building the inclusion pattern
           INCLUSIONS=""
           MODULES=""
+          declare -A INCLUDED_FILES
 
           # Process each changed file
           while IFS= read -r file; do
             if [ -n "$file" ]; then
               # Add the file itself
               INCLUSIONS="${INCLUSIONS}            ${file}\n"
+              INCLUDED_FILES["$file"]=1
 
               # Extract module directory (e.g., "core" from "core/src/main/java/...")
               MODULE=$(echo "$file" | cut -d'/' -f1)
@@ -106,12 +108,14 @@ jobs:
               # Track unique modules
               if [[ ! " $MODULES " =~ " $MODULE " ]]; then
                 MODULES="$MODULES $MODULE"
-                # Add the module's build.gradle if it exists
-                if [ -f "$MODULE/build.gradle" ]; then
+                # Add the module's build.gradle if it exists and not already included
+                if [ -f "$MODULE/build.gradle" ] && [ -z "${INCLUDED_FILES[$MODULE/build.gradle]}" ]; then
                   INCLUSIONS="${INCLUSIONS}            ${MODULE}/build.gradle\n"
+                  INCLUDED_FILES["$MODULE/build.gradle"]=1
                 fi
-                if [ -f "$MODULE/build.gradle.kts" ]; then
+                if [ -f "$MODULE/build.gradle.kts" ] && [ -z "${INCLUDED_FILES[$MODULE/build.gradle.kts]}" ]; then
                   INCLUSIONS="${INCLUSIONS}            ${MODULE}/build.gradle.kts\n"
+                  INCLUDED_FILES["$MODULE/build.gradle.kts"]=1
                 fi
               fi
             fi
