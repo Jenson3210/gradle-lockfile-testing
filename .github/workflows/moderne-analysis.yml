@@ -142,9 +142,16 @@ jobs:
       - name: Run Moderne recipes
         id: moderne-run
         run: |
+          mod build . --no-download || {
+            echo "Build failed. Displaying build log:"
+            BUILD_LOG=$(find .moderne/build/pr-files -name "build.log" -type f 2>/dev/null | head -1)
+            if [ -n "$BUILD_LOG" ] && [ -f "$BUILD_LOG" ]; then
+              cat "$BUILD_LOG"
+            fi
+            exit 1
+          }
           # TODO can we not cache the installed jars output somehow to be only installing new ones once a day?
           mod config recipes jar install org.openrewrite.recipe:rewrite-static-analysis:2.18.0
-          mod build . --no-download
           mod run . --recipe=org.openrewrite.staticanalysis.CommonStaticAnalysis
           mod git apply . --last-recipe-run
 
