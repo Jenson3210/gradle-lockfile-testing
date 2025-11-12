@@ -72,10 +72,13 @@ jobs:
           # Fetch the base branch
           git fetch origin "$BASE_BRANCH"
 
-          # Get list of changed files in the PR
-          CHANGED_FILES=$(git diff --name-only "origin/$BASE_BRANCH"...HEAD)
+          # Get files with additions (added lines or new files)
+          # --numstat shows: added_lines deleted_lines filename
+          # Filter for files where added_lines > 0
+          CHANGED_FILES=$(git diff --numstat "origin/$BASE_BRANCH"...HEAD | \
+            awk '$1 != "-" && $1 > 0 {print $3}')
 
-          echo "Changed files:"
+          echo "Files with additions:"
           echo "$CHANGED_FILES"
 
           # Save to output
